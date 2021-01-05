@@ -1,13 +1,15 @@
 breed [productos producto]
 
-productos-own [CostoProd CostoMan demanda tpm1 tpm2 tpm3 tpm4 pos pos1 pos2 ]
+
+productos-own [CostoProd CostoMan demanda tpm1 tpm2 tpm3 tpm4 pos pos1 pos2 pos3 flag3]
 patches-own [CapacidadMax]
 
-globals [posiciones tpo_final tp1 tp2 tp3 tp4 ite mejor_posicion ndiv ndivreal flag flag2 inventario1 inventario2 inventario3 costop costoFinal Util1]
+
+globals [posiciones tpo_final tp1 tp2 tp3 tp4 ite mejor_posicion ndiv ndivreal flag flag2 inventario1 inventario2 inventario3 costop costoFinal Util1 pos_perturbada posiciones1]
 
 to setup
   ca
-  set flag true ; No sirve (sacarlo)
+  set flag false
   set flag2 false
   set ndiv 1
   set tp1 []
@@ -30,12 +32,14 @@ to go
     inventarios
     costos
     ask turtles [move-to patch -10 0 set tp1 [] set tp2 [] set tp3 [] set tp4 []]
-    if flag = true [tipo-clasificacion]
+    ifelse perturbar = false [clasificacion][tipo-perturbado]
     posicion]
   [
+
   if flag2 = false [
       flow-shop]
   ]
+
   tick
 end
 
@@ -43,10 +47,10 @@ to crt-productos
    create-productos 1 [
     setxy -10 0
     set demanda D1
-    set tpm1 2 ;* D1
-    set tpm2 1 ;* D1
-    set tpm3 2 ;* D1
-    set tpm4 2 ;* D1
+    set tpm1 2
+    set tpm2 1
+    set tpm3 2
+    set tpm4 2
     set label "1"
     set label-color 5
     set heading 90
@@ -57,10 +61,10 @@ to crt-productos
   create-productos 1 [
     setxy -10 0
     set demanda D2
-    set tpm1 2 ;* D2
-    set tpm2 4 ;* D2
-    set tpm3 1 ;* D2
-    set tpm4 1 ;* D2
+    set tpm1 2
+    set tpm2 4
+    set tpm3 1
+    set tpm4 1
     set label "2"
     set label-color 5
     set heading 90
@@ -71,10 +75,10 @@ to crt-productos
   create-productos 1 [
     setxy -10 0
     set demanda D3
-    set tpm1 4 ;* D3
-    set tpm2 2 ;* D3
-    set tpm3 2 ;* D3
-    set tpm4 3 ;* D3
+    set tpm1 4
+    set tpm2 2
+    set tpm3 2
+    set tpm4 3
     set label "3"
     set label-color 5
     set heading 90
@@ -96,13 +100,13 @@ to crt-maquinas
   ask patches [if pxcor = -10 and pycor = 0
     [set pcolor red set plabel "Inicio"]]
   ask patches [if pxcor = -3 and pycor = 0
-    [set pcolor blue set plabel "M1" set CapacidadMax CapacidadMaxima]]
+    [set pcolor blue set plabel "M1"]]
   ask patches [if pxcor = 0 and pycor = 0
-    [set pcolor blue set plabel "M2" set CapacidadMax CapacidadMaxima]]
+    [set pcolor blue set plabel "M2"]]
   ask patches [if pxcor = 3 and pycor = 0
-    [set pcolor blue set plabel "M3" set CapacidadMax CapacidadMaxima]]
+    [set pcolor blue set plabel "M3"]]
   ask patches [if pxcor = 6 and pycor = 0
-    [set pcolor blue set plabel "M4" set CapacidadMax CapacidadMaxima]]
+    [set pcolor blue set plabel "M4"]]
   ask patches [if pxcor = 9 and pycor = 0
     [set pcolor brown set plabel "End"]]
 end
@@ -116,10 +120,16 @@ to flow-shop
 end
 
 to evaluar
-  ifelse (( [tpm1] of one-of turtles with [label = "1"] * D1) + ( [tpm1] of one-of turtles with [label = "2"] * D2) + ( [tpm1] of one-of turtles with [label = "3"] * D3)) > CapacidadMaxima [set flag2 true Print ("Capacidad Maquina 1 Sobrepasada")][
+  ifelse perturbar = false[
+  ifelse (( [tpm1] of one-of turtles with [label = "1"] * D1 ) + ( [tpm1] of one-of turtles with [label = "2"] * D2) + ( [tpm1] of one-of turtles with [label = "3"] * D3)) > CapacidadMaxima [set flag2 true Print ("Capacidad Maquina 1 Sobrepasada")][
   ifelse (( [tpm2] of one-of turtles with [label = "1"] * D1) + ( [tpm2] of one-of turtles with [label = "2"] * D2) + ( [tpm2] of one-of turtles with [label = "3"] * D3)) > CapacidadMaxima [set flag2 true Print ("Capacidad Maquina 2 Sobrepasada")][
   ifelse (( [tpm3] of one-of turtles with [label = "1"] * D1) + ( [tpm3] of one-of turtles with [label = "2"] * D2) + ( [tpm3] of one-of turtles with [label = "3"] * D3)) > CapacidadMaxima [set flag2 true Print ("Capacidad Maquina 3 Sobrepasada")][
-  ifelse (( [tpm4] of one-of turtles with [label = "1"] * D1) + ( [tpm4] of one-of turtles with [label = "2"] * D2) + ( [tpm4] of one-of turtles with [label = "3"] * D3)) > CapacidadMaxima [set flag2 true Print ("Capacidad Maquina 4 Sobrepasada")][actualizar set flag2 false]]]]
+  ifelse (( [tpm4] of one-of turtles with [label = "1"] * D1) + ( [tpm4] of one-of turtles with [label = "2"] * D2) + ( [tpm4] of one-of turtles with [label = "3"] * D3)) > CapacidadMaxima [set flag2 true Print ("Capacidad Maquina 4 Sobrepasada")][set flag2 false ifelse perturbar = false  [actualizar][tipo-perturbado] ]]]]]
+ [ifelse (( [tpm1] of one-of turtles with [label = "1"] * sum [demanda] of turtles with [label = "1"] ) + ( [tpm1] of one-of turtles with [label = "2"] * sum [demanda] of turtles with [label = "2"]) + ( [tpm1] of one-of turtles with [label = "3"] * sum [demanda] of turtles with [label = "3"])) > CapacidadMaxima [set flag2 true Print ("Capacidad Maquina 1 Sobrepasada")][
+  ifelse (( [tpm2] of one-of turtles with [label = "1"] * sum [demanda] of turtles with [label = "1"]) + ( [tpm2] of one-of turtles with [label = "2"] * sum [demanda] of turtles with [label = "2"]) + ( [tpm2] of one-of turtles with [label = "3"] * sum [demanda] of turtles with [label = "3"])) > CapacidadMaxima [set flag2 true Print ("Capacidad Maquina 2 Sobrepasada")][
+  ifelse (( [tpm3] of one-of turtles with [label = "1"] * sum [demanda] of turtles with [label = "1"]) + ( [tpm3] of one-of turtles with [label = "2"] * sum [demanda] of turtles with [label = "2"]) + ( [tpm3] of one-of turtles with [label = "3"] * sum [demanda] of turtles with [label = "3"])) > CapacidadMaxima [set flag2 true Print ("Capacidad Maquina 3 Sobrepasada")][
+  ifelse (( [tpm4] of one-of turtles with [label = "1"] * sum [demanda] of turtles with [label = "1"]) + ( [tpm4] of one-of turtles with [label = "2"] * sum [demanda] of turtles with [label = "2"]) + ( [tpm4] of one-of turtles with [label = "3"] * sum [demanda] of turtles with [label = "3"])) > CapacidadMaxima [set flag2 true Print ("Capacidad Maquina 4 Sobrepasada")][set flag2 false ifelse perturbar = false  [actualizar][tipo-perturbado] ]]]]]
+
 end
 
 to M1
@@ -147,63 +157,54 @@ to posicion
     set posiciones shuffle(n-values count productos [i -> i])
     foreach [who] of productos [x -> ask producto x [set pos item aux posiciones set aux aux + 1]]]
 
-  if Funcion = "Makespan" [ask turtles [set pos pos1]]
+  if Funcion = "Makespan" [ ask turtles [set pos pos1]
+    if mejorar = true [
+      let aux 0
+      set posiciones1 shuffle(n-values count productos with [pos >= pos_perturbada][i -> (i + pos_perturbada)])
+      foreach [who] of productos with [pos >= pos_perturbada] [x -> ask producto x [set pos3 item aux posiciones1 set pos item aux posiciones1 set aux aux + 1]]]
+      ]
+end
 
-  if Funcion = "Tiempo Medio Finalizacion" [ask turtles[set pos pos2]] ; No esta hecho, en vez de esto le pondria que me entregara el menor costo (funcion objetivo del paper)
+to tipo-perturbado
+  if flag = false[
+    ask one-of turtles [if label = "1" [set demanda (ceiling (D1 /(ndivreal + 1)) + cantidad_cambio) set flag3 1 set pos_perturbada pos1 ask  turtles with [pos1 > pos_perturbada][set flag3 true]]
+    if label = "2" [set demanda (ceiling (D2 /(ndivreal + 1)) + cantidad_cambio) set flag3 1 set pos_perturbada pos1 ask  turtles with [pos1 > pos_perturbada][set flag3 true ]]
+    if label = "3" [set demanda (ceiling (D3 /(ndivreal + 1)) + cantidad_cambio) set flag3 1 set pos_perturbada pos1 ask  turtles with [pos1 > pos_perturbada][set flag3 true ]]]
+    set flag  true]
 end
 
 to makespan
   set ite (se ite tpo_final) set ite remove 0 ite
   if min ite = tpo_final [ask turtles [set pos1 pos]]
+
 end
 
 to actualizar
-   if clasificacion = "Sublotes-iguales-entremezclado"[
-    ask turtles-on patch -10 0 [if label = "1" [set demanda ceiling (D1 /(ndivreal + 1))]]
-    ask turtles-on patch -10 0 [if label = "2" [set demanda ceiling (D2 /(ndivreal + 1))]]
-    ask turtles-on patch -10 0 [if label = "3" [set demanda ceiling (D3 /(ndivreal + 1))]]]
+  ask turtles-on patch -10 0 [if label = "1" [set demanda ceiling (D1 /(ndivreal + 1))]]
+  ask turtles-on patch -10 0 [if label = "2" [set demanda ceiling (D2 /(ndivreal + 1))]]
+  ask turtles-on patch -10 0 [if label = "3" [set demanda ceiling (D3 /(ndivreal + 1))]]
 end
 
-to tipo-clasificacion
-  if clasificacion = "Sublotes-iguales-entremezclado"[
-    ask turtles-on patch -10 0 [if label = "1" [set demanda ceiling (D1 /(ndivreal + 1))]]
-    ask turtles-on patch -10 0 [if label = "2" [set demanda ceiling (D2 /(ndivreal + 1))]]
-    ask turtles-on patch -10 0 [if label = "3" [set demanda ceiling (D3 /(ndivreal + 1))]]
-    ;ask turtles-here with [label = "2"] [set demanda round ((ndiv * (D2 /(ndiv + 1)) ))]
-    ;ask turtles-here with [label = "3"] [set demanda round ((ndiv * (D3 /(ndiv + 1)) ))]   ;set tpm1 round ((ndiv * (tpm1 / (ndiv + 1) ))) set tpm2 round ((ndiv * (tpm2 / (ndiv + 1) ))) set tpm3 round ((ndiv * (tpm3 / (ndiv + 1) ))) set tpm4 round (ndiv * (tpm4 / (ndiv + 1) ))] ;[set prod prod / 2 set tpm1 tpm1 / 2 set tpm2 tpm2 / 2 set tpm3 tpm3 / 2 set tpm4 tpm4 / 2]
-    if ndiv < N_max_sublotes[
-      ask one-of productos with [label = "1"] [hatch 1]
-      ask one-of productos with [label = "2"] [hatch 1]
-      ask one-of productos with [label = "3"] [hatch 1]
-      set ndiv ndiv + 1
-      set ndivreal ndivreal + 1
-      if ndiv = N_max_sublotes [set ndivreal ndiv - 1]]]
-
-;  if clasificacion = "Sublotes-consistentes-entremezclado"[
-;    set lista []
-;    if ndiv = 1 [
-;      ask productos with [label = "1"] [set lista lput random(demanda + 1) lista set demanda item 0 lista set tpm1 (tpm1 / D1) * item 0 lista set tpm2 (tpm2 / D1) * item 0 lista set tpm3 (tpm3 / D1) * item 0 lista set tpm4 (tpm4 / D1) * item 0 lista hatch 1 [set demanda D1 - item 0 lista set tpm1 (tpm1 / D1) * (D1 - item 0 lista) set tpm2 (tpm2 / D1) * (D1 - item 0 lista) set tpm3 (tpm3 / D1) * (D1 - item 0 lista) set tpm4 (tpm4 / D1) * (D1 - item 0 lista)]]
-;      ask productos with [label = "2"] [set lista lput random(demanda + 1) lista set demanda item 1 lista set tpm1 (tpm1 / D2) * item 1 lista set tpm2 (tpm2 / D2) * item 1 lista set tpm3 (tpm3 / D2) * item 1 lista set tpm4 (tpm4 / D2) * item 1 lista hatch 1 [set demanda D2 - item 1 lista set tpm1 (tpm1 / D2) * (D2 - item 0 lista) set tpm2 (tpm2 / D2) * (D2 - item 0 lista) set tpm3 (tpm3 / D2) * (D2 - item 0 lista) set tpm4 (tpm4 / D2) * (D2 - item 0 lista)]]
-;      ask productos with [label = "3"] [set lista lput random(demanda + 1) lista set demanda item 2 lista set tpm1 (tpm1 / D3) * item 2 lista set tpm2 (tpm2 / D3) * item 2 lista set tpm3 (tpm3 / D3) * item 0 lista set tpm4 (tpm4 / D3) * item 2 lista hatch 1 [set demanda D3 - item 2 lista set tpm1 (tpm1 / D3) * (D3 - item 0 lista) set tpm2 (tpm2 / D3) * (D3 - item 0 lista) set tpm3 (tpm3 / D3) * (D3 - item 0 lista) set tpm4 (tpm4 / D3) * (D3 - item 0 lista)]]
-;      set ndiv ndiv + 1]]
-;    [
-;      ifelse ndiv = 2 [
-;        ask one-of productos with [label = "1"] [set lista lput random(demanda + 1) lista set demanda item 0 lista hatch 1 [set demanda D1 - item 0 lista]]
-;        ask one-of productos with [label = "2"] [set lista lput random(demanda + 1) lista set demanda item 0 lista hatch 1 [set demanda D1 - item 0 lista]]
-;        ask one-of productos with [label = "3"] [set lista lput random(demanda + 1) lista set demanda item 0 lista hatch 1 [set demanda D1 - item 0 lista]]
-;        [set ndiv ndiv + 1]]
-;      [ ]]]
+to clasificacion
+  ask turtles-on patch -10 0 [if label = "1" [set demanda ceiling (D1 /(ndivreal + 1))]]
+  ask turtles-on patch -10 0 [if label = "2" [set demanda ceiling (D2 /(ndivreal + 1))]]
+  ask turtles-on patch -10 0 [if label = "3" [set demanda ceiling (D3 /(ndivreal + 1))]]
+  if ndiv < N_max_sublotes[
+    ask one-of productos with [label = "1"] [hatch 1]
+    ask one-of productos with [label = "2"] [hatch 1]
+    ask one-of productos with [label = "3"] [hatch 1]
+    set ndiv ndiv + 1
+    set ndivreal ndivreal + 1
+    if ndiv = N_max_sublotes [set ndivreal ndiv - 1]]
 end
 
 to inventarios
-  ;ask turtles with [label = "1"] [set  inventario ((demanda * (ndivreal + 1) ) - D1)]
-  ;ask turtles [set  inventario ((demanda * (ndivreal + 1) ) - D1)]
-  set inventario1 (sum [demanda] of turtles with [label = "1"] - D1)
-  set inventario2 (sum [demanda] of turtles with [label = "2"] - D2)
-  set inventario3 (sum [demanda] of turtles with [label = "3"] - D3)
+  ifelse  perturbar = true and any? turtles with [flag3 =  1  and label = "1"] [set inventario1 (sum [demanda] of turtles with [label = "1"] - ( D1 + cantidad_cambio))][set inventario1 (sum [demanda] of turtles with [label = "1"] - D1)]
+  ifelse  perturbar = true and  any? turtles with [flag3 =  1  and label = "2"] [set inventario2 (sum [demanda] of turtles with [label = "2"] - ( D2 + cantidad_cambio))][set inventario2 (sum [demanda] of turtles with [label = "2"] - D2)]
+  ifelse  perturbar = true and any? turtles with [flag3 =  1  and label = "3"] [set inventario3 (sum [demanda] of turtles with [label = "3"] - ( D3 + cantidad_cambio))][set inventario3 (sum [demanda] of turtles with [label = "3"] - D3)]
 end
 
-to costos ;10 15 12 ;3 4 3 ;5
+to costos
   set costop []
   set costop lput (sum [demanda] of turtles with [label = "1"] * 10 * 4) costop
   set costop lput (sum [demanda] of turtles with [label = "2"] * 15 * 4) costop
@@ -214,16 +215,15 @@ to costos ;10 15 12 ;3 4 3 ;5
   set costop lput ((last ite * 5)) costop
   set costoFinal sum costop
 end
-
 @#$#@#$#@
 GRAPHICS-WINDOW
-310
-14
-727
-432
+312
+60
+691
+440
 -1
 -1
-19.5
+17.7
 1
 10
 1
@@ -244,10 +244,10 @@ ticks
 30.0
 
 SLIDER
-11
-122
-183
-155
+16
+70
+179
+103
 D1
 D1
 0
@@ -259,10 +259,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-12
-171
-184
-204
+16
+110
+179
+143
 D2
 D2
 0
@@ -274,10 +274,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-12
-221
+16
+151
+179
 184
-254
 D3
 D3
 0
@@ -289,10 +289,10 @@ NIL
 HORIZONTAL
 
 BUTTON
-15
-18
-78
-51
+16
+26
+79
+59
 NIL
 setup
 NIL
@@ -306,10 +306,10 @@ NIL
 1
 
 BUTTON
-94
-18
-157
-51
+89
+26
+152
+59
 NIL
 go
 T
@@ -323,20 +323,20 @@ NIL
 1
 
 CHOOSER
-740
-13
-927
-58
+313
+10
+486
+55
 Funcion
 Funcion
 "Entrenar" "Makespan" "Tiempo Medo Finalizacion"
-1
+0
 
 MONITOR
-742
-327
-842
-372
+704
+281
+806
+326
 Makespan Total
 last ite
 17
@@ -344,10 +344,10 @@ last ite
 11
 
 MONITOR
-740
-68
-828
-113
+704
+71
+792
+116
 Makespan M1
 last tp1
 17
@@ -355,10 +355,10 @@ last tp1
 11
 
 MONITOR
-741
-132
-829
-177
+704
+122
+792
+167
 Makespan M2
 last tp2
 17
@@ -366,10 +366,10 @@ last tp2
 11
 
 MONITOR
-741
-195
-829
-240
+704
+175
+792
+220
 Makespan M3
 last tp3
 17
@@ -377,10 +377,10 @@ last tp3
 11
 
 MONITOR
-742
-260
-830
-305
+704
+228
+792
+273
 Makespan M4
 last tp4
 17
@@ -388,10 +388,10 @@ last tp4
 11
 
 MONITOR
-869
-68
-972
-113
+704
+334
+806
+379
 Mejor Makespan
 min ite
 17
@@ -399,10 +399,10 @@ min ite
 11
 
 SLIDER
-867
-137
-1039
-170
+186
+151
+300
+184
 N_max_sublotes
 N_max_sublotes
 0
@@ -414,10 +414,10 @@ NIL
 HORIZONTAL
 
 PLOT
-867
-195
-1334
-418
+813
+71
+1272
+273
 Makespan
 Iteración
 Makespan
@@ -431,21 +431,11 @@ false
 PENS
 "default" 1.0 0 -16777216 true "" "plot last ite"
 
-CHOOSER
-11
-66
-266
-111
-Clasificacion
-Clasificacion
-"Sublotes-iguales-entremezclado" "Sublotes-consistentes-entremezclado"
-0
-
 MONITOR
-10
-269
-104
-314
+16
+198
+108
+243
 Lote/Sublotes P1
 [demanda] of turtles with [label = \"1\"]
 17
@@ -453,10 +443,10 @@ Lote/Sublotes P1
 11
 
 MONITOR
-8
-328
-96
-373
+16
+252
+104
+297
 Inventario P1
 inventario1
 17
@@ -464,10 +454,10 @@ inventario1
 11
 
 MONITOR
-101
-328
-189
-373
+109
+253
+197
+298
 Inventario P2
 inventario2
 17
@@ -475,10 +465,10 @@ inventario2
 11
 
 MONITOR
-196
-328
-284
-373
+202
+253
+290
+298
 Inventario P3
 inventario3
 17
@@ -486,10 +476,10 @@ inventario3
 11
 
 MONITOR
-8
-384
-216
-429
+16
+306
+221
+351
 Costos Produccion/Inventario/Makespan
 costop
 17
@@ -497,10 +487,10 @@ costop
 11
 
 MONITOR
-222
-384
-293
-429
+226
+306
+297
+351
 NIL
 CostoFinal
 17
@@ -508,10 +498,10 @@ CostoFinal
 11
 
 INPUTBOX
-305
-443
-395
-503
+16
+357
+127
+417
 CapacidadMaxima
 400.0
 1
@@ -519,10 +509,10 @@ CapacidadMaxima
 Number
 
 MONITOR
-406
-443
-553
-488
+139
+372
+268
+417
 Capacidad Sobrepasada
 flag2
 17
@@ -530,54 +520,289 @@ flag2
 11
 
 MONITOR
-407
+928
+285
+1031
+330
+Cant. Utilizada M1
+(( [tpm1] of one-of turtles with [label = \"1\"] * sum [demanda] of turtles with [label = \"1\"]) + ( [tpm1] of one-of turtles with [label = \"2\"] * sum [demanda] of turtles with [label = \"2\"]) + ( [tpm1] of one-of turtles with [label = \"3\"] * sum [demanda] of turtles with [label = \"3\"]))
+17
+1
+11
+
+MONITOR
+1041
+285
+1144
+330
+Cant. Utilizada M2
+(( [tpm2] of one-of turtles with [label = \"1\"] * sum [demanda] of turtles with [label = \"1\"]) + ( [tpm2] of one-of turtles with [label = \"2\"] * sum [demanda] of turtles with [label = \"2\"]) + ( [tpm2] of one-of turtles with [label = \"3\"] * sum [demanda] of turtles with [label = \"3\"]))
+17
+1
+11
+
+MONITOR
+928
+335
+1032
+380
+Cant. Utilizada M3
+(( [tpm3] of one-of turtles with [label = \"1\"] * sum [demanda] of turtles with [label = \"1\"]) + ( [tpm3] of one-of turtles with [label = \"2\"] * sum [demanda] of turtles with [label = \"2\"]) + ( [tpm3] of one-of turtles with [label = \"3\"] * sum [demanda] of turtles with [label = \"3\"]))
+17
+1
+11
+
+MONITOR
+1041
+335
+1144
+380
+Cant. Utilizada M4
+(( [tpm4] of one-of turtles with [label = \"1\"] * sum [demanda] of turtles with [label = \"1\"]) + ( [tpm4] of one-of turtles with [label = \"2\"] * sum [demanda] of turtles with [label = \"2\"]) + ( [tpm4] of one-of turtles with [label = \"3\"] * sum [demanda] of turtles with [label = \"3\"]))
+17
+1
+11
+
+SWITCH
+493
+22
+590
+55
+perturbar
+perturbar
+1
+1
+-1000
+
+SLIDER
+705
+21
+985
+54
+cantidad_cambio
+cantidad_cambio
+-100
+100
+15.0
+1
+1
+NIL
+HORIZONTAL
+
+SWITCH
+599
+22
+690
+55
+mejorar
+mejorar
+1
+1
+-1000
+
+MONITOR
+217
+447
+274
+492
+Pos P0
+[pos1] of turtle 0
+17
+1
+11
+
+MONITOR
+281
+448
+338
+493
+Pos P1
+[pos1] of turtle 1
+17
+1
+11
+
+MONITOR
+346
+448
+403
+493
+Pos P2
+[pos1] of turtle 2
+17
+1
+11
+
+MONITOR
+411
+448
+468
+493
+Pos P3
+[pos1] of turtle 3
+17
+1
+11
+
+MONITOR
+476
+449
+533
 494
-508
-539
-Utilizacion Maq1
-(( [tpm1] of one-of turtles with [label = \"1\"] * D1) + ( [tpm1] of one-of turtles with [label = \"2\"] * D2) + ( [tpm1] of one-of turtles with [label = \"3\"] * D3))
+Pos P4
+[pos1] of turtle 4
 17
 1
 11
 
 MONITOR
-523
+542
+449
+599
 494
-624
-539
-Utilizacion Maq2
-(( [tpm2] of one-of turtles with [label = \"1\"] * D1) + ( [tpm2] of one-of turtles with [label = \"2\"] * D2) + ( [tpm2] of one-of turtles with [label = \"3\"] * D3))
+Pos P5
+[pos1] of turtle 5
 17
 1
 11
 
 MONITOR
-407
+607
+449
+664
+494
+Pos P6
+[pos1] of turtle 6
+17
+1
+11
+
+MONITOR
+674
+449
+731
+494
+Pos P7
+[pos1] of turtle 7
+17
+1
+11
+
+MONITOR
+740
+449
+797
+494
+Pos P8
+[pos1] of turtle 8
+17
+1
+11
+
+MONITOR
+217
+497
+274
+542
+Pos P0
+[pos3] of turtle 0
+17
+1
+11
+
+MONITOR
+282
+498
+339
+543
+Pos P1
+[pos3] of turtle 1
+17
+1
+11
+
+MONITOR
+346
+498
+403
+543
+Pos P2
+[pos3] of turtle 2
+17
+1
+11
+
+MONITOR
+411
+498
+468
+543
+Pos P3
+[pos3] of turtle 3
+17
+1
+11
+
+MONITOR
+476
+499
+533
+544
+Pos P4
+[pos3] of turtle 4
+17
+1
+11
+
+MONITOR
+542
+499
+599
+544
+Pos P5
+[pos3] of turtle 5
+17
+1
+11
+
+MONITOR
+607
+500
+664
+545
+Pos P6
+[pos3] of turtle 6
+17
+1
+11
+
+MONITOR
+673
+500
+730
+545
+Pos P7
+[pos3] of turtle 7
+17
+1
+11
+
+MONITOR
+740
+501
+797
 546
-508
-591
-Utilizacion Maq3
-(( [tpm3] of one-of turtles with [label = \"1\"] * D1) + ( [tpm3] of one-of turtles with [label = \"2\"] * D2) + ( [tpm3] of one-of turtles with [label = \"3\"] * D3))
+Pos P8
+[pos3] of turtle 8
 17
 1
 11
 
 MONITOR
-524
-546
-625
-591
-Utilizacion Maq4
-(( [tpm4] of one-of turtles with [label = \"1\"] * D1) + ( [tpm4] of one-of turtles with [label = \"2\"] * D2) + ( [tpm4] of one-of turtles with [label = \"3\"] * D3))
-17
-1
-11
-
-MONITOR
-110
-269
-204
-314
+112
+198
+205
+243
 Lote/Sublotes P2
 [demanda] of turtles with [label = \"2\"]
 17
@@ -586,11 +811,42 @@ Lote/Sublotes P2
 
 MONITOR
 209
-269
-303
-314
+198
+302
+243
 Lote/Sublotes P3
 [demanda] of turtles with [label = \"3\"]
+17
+1
+11
+
+TEXTBOX
+53
+452
+203
+480
+Secuencia del mejor makespan
+11
+0.0
+1
+
+TEXTBOX
+53
+500
+203
+528
+Reordenamiento en tiempo real
+11
+0.0
+1
+
+MONITOR
+707
+392
+899
+437
+Numero de producto perturbado
+[who] of turtles with [flag3 = 1]
 17
 1
 11
@@ -598,39 +854,50 @@ Lote/Sublotes P3
 @#$#@#$#@
 ## WHAT IS IT?
 
-(a general understanding of what the model is trying to show or explain)
+Este proyecto simula un sistema de producción de 4 máquinas y 3 productos. Aborda el problema del lot streaming dentro de un entorno dinámico de flow shop, en donde la producción se adapte de manera eficiente a perturbaciones durante el proceso de producción, determinando la secuencia optima y disminuyendo los costos mediante la minimización del makespan del proceso que se adapten de mejor manera a la perturbación.
 
 ## HOW IT WORKS
 
-(what rules the agents use to create the overall behavior of the model)
+El ambiente se desarrolla con 3 tipos de lotes de productos que simulan el proceso de producción flow shop. Una vez que se realiza la primera secuencia, los lotes se dividen a la mitad quedando dos sublotes de cada lote. El tamaño de estos sublotes serán iguales en cada máquina por lo que serán consistentes. El numero máximo de sublotes en los que se pueden dividir los lotes es 3.
+
+De esta manera cuando se llega a la máxima división de sublotes, los agentes comienzan a entrenar hasta que obtienen la secuencia optima del makespan. 
+
+Una vez obtenida la secuencia optima se puede producir una perturbación en un momento "t" del proceso de producción produciendo una disminución o aumento en el tamaño de un sublote. Al producirse la perturbación los agentes guardan la secuencia de los sublotes que ya pasaron por las máquinas y obtienen la mejor secuencia de los sublotes que faltan por pasar disminuyendo el makespan para el proceso con perturbación.
 
 ## HOW TO USE IT
 
-(how to use the model, including a description of each of the items in the Interface tab)
+Se comienza por fijar la cantidad demanda de cada producto en D1, D2 y D3 junto con el numero máximo de sublotes (N_max_sublotes) y la capacidad máxima de cada maquina 
+(CapacidadMaxima, misma capacidad para cada máquina). Y, además, se debe fijar el seleccionador "Funcion" en entrenar y el interruptor de perturbar y mejorar en Off. Asimismo, también se tiene que fijar la cantidad en la que va a cambiar un sublote.
+
+Luego se debe hacer click en SETUP para inicializar la interfaz y en GO para comenzar el entrenamiento de los agentes.
+
+Una vez que los agentes hayan entrenado, se debe fijar el seleccionador "Funcion" en makespan para observar la secuencia de los sublotes que obtuvieron el menor makespan y el valor de este mismo.
+
+Posteriormente se puede realizar la perturbación al sistema cambiando el interruptor "perturbar" a On, el cual dará la secuencia que obtenga el menor makespan considerando la perturbación que se realizó en el sistema. Por consiguiente, se puede cambiar el interruptor "mejorar" a On para entrenar el sistema y ver si encuentra una secuencia mejor.
+
+La observación de cual sublote se perturbo se puede ver en los monitores "Lote/Sublotes P1, P2 y P3".
+
+Los monitores "Inventarios P1, P2 y P3" permiten visualizar el inventario (o productos extras) que se producen cuando se dividen los lotes en sublotes iguales.
+
+El monitor "Costos Producción/Inventario/Makespan" entrega en los tres primeros ítems de la lista los costos de producción de cada tipo de producto, los tres siguiente ítem luego del tercer ítem muestran los costos de inventario y el ultimo ítem muestra el costo del makespan (makespan transformado a costo D). El monitor "CostoFinal" entrega el costo de la función objetivo cuando se disminuye el makespan.
+
+El monitor "capacidad sobrepasada" muestra True si la capacidad de alguna maquina fue sobrepasada por la demanda de productos. Estas mismas cantidades de utilización de cada máquina se pueden observar en los monitores "Cant. Utilizada M1, M2, M3 y M4".
+
+Los monitores "Makespan M1, M2, M3 y M4" muestran el makespan de todos los productos que han pasado por esa máquina.
+
+El monitor "Makespan Total" muestra el makespan total del proceso que se obtuvo en esa iteración.
+
+El monitor "Mejor Makespan" muestra el mínimo makespan que se ha obtenido durante la simulación.
 
 ## THINGS TO NOTICE
 
-(suggested things for the user to notice while running the model)
+Si la cantidad de alguna maquina fue sobrepasada por la demanda que se entregaron a los productos, el simulador se detiene hasta que se cumpla la restricción de la capacidad de las maquinas.
 
-## THINGS TO TRY
-
-(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
+Puede realizarse solo una perturbación durante la simulación, ya que, si se vuelve a modificar el interruptor luego de ya haber realizado una perturbación, esta no se verá apreciada en el gráfico.
 
 ## EXTENDING THE MODEL
 
-(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
-
-## NETLOGO FEATURES
-
-(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
-
-## RELATED MODELS
-
-(models in the NetLogo Models Library and elsewhere which are of related interest)
-
-## CREDITS AND REFERENCES
-
-(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
+Se podría sugerir construir un modelo en donde el usuario pueda modificar el sublote que se quiere perturbar, ya que en estos momentos se está haciendo la perturbación en un sublote aleatorio.
 @#$#@#$#@
 default
 true
