@@ -7,7 +7,7 @@ _Fecha de implementación:_ **$2^{do}$ _semestre 2020_**
 
 _**Nota:** Si bien el modelo es implementado en un contexto biológico básico simplificado, este mismo podría ser generalizado a otras situaciones tales como: Empresas que compiten por los consumidores, Partidos políticos que compiten por los votos, o Virus que evolucionan en un sistema informático._
 
-**Proyecto:** Problema de Lot Sizing integrado en el Lot Streaming en un ambiente de Flow Shop con perturbaciones en sublotes durante el Proceso de Producción.
+**Proyecto Final:** Problema de Lot Sizing integrado en el Lot Streaming en un ambiente de Flow Shop con perturbaciones en sublotes durante el Proceso de Producción.
 - Modelamiento de productos y maquinas en un ambiente inteligente de un sistema de producción.
 - Entrenamiento del agente con el objetivo de minimizar el makespan, y a su vez, costos relacionados a producción e inventario.
 - Implementación de una pertubación en el sistema que obliga al modelo a buscar una mejor solución por medio de una reprogramación en tiempo real.
