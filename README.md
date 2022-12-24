@@ -2,7 +2,7 @@
 
 ### Curso de Ingeniería Civil Industrial UdeC 
 
-_Fecha de implementación:_ 2^{do}$ _semestre 2020_
+_Fecha de implementación:_ $2^{do}$ _semestre 2020_
 
 **Tarea 1:** Simulación del modelo Predador-Presa en un contexto biológico.
 - Implementación propia del comportamiento de dos especies (lobos-ovejas) que comparten el mismo hábitat a lo largo del tiempo.
